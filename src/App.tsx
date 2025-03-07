@@ -48,8 +48,8 @@ function App() {
   };
 
   return (
-    <Container maxWidth="xs" sx={{ display: 'flex', justifyContent: 'center', alignItems: 'center', minHeight: '100vh', padding: 1 }}>
-      <Paper sx={{ width: '100%', maxWidth: '280px', minHeight: '80vh' }}>
+    <Container maxWidth={false} sx={{ display: 'flex', justifyContent: 'center', alignItems: 'center', minHeight: '100vh', width: '100%', padding: 2 }}>
+      <Paper sx={{ width: '100%', maxWidth: '800px', minHeight: '80vh' }}>
         <Box sx={{ borderBottom: 1, borderColor: 'divider' }}>
           <Tabs value={currentTab} onChange={handleTabChange} centered>
             <Tab label="番茄钟" />

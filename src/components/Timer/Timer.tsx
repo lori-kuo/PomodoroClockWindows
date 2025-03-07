@@ -1,16 +1,18 @@
-import { useState, useEffect } from 'react';
+import { useState, useEffect, useRef } from 'react';
 import { Box, Typography, IconButton } from '@mui/material';
 import PlayArrowIcon from '@mui/icons-material/PlayArrow';
 import PauseIcon from '@mui/icons-material/Pause';
 import RestartAltIcon from '@mui/icons-material/RestartAlt';
 import { getSettings } from '../../utils/storage';
+import { Task } from '../../types';
 
 interface TimerProps {
-  workDuration?: number; // 工作时长（分钟）
-  shortBreakDuration?: number; // 短休息时长（分钟）
-  longBreakDuration?: number; // 长休息时长（分钟）
-  cycleCount?: number; // 循环次数
-  onComplete?: () => void; // 完成回调
+  workDuration?: number;
+  shortBreakDuration?: number;
+  longBreakDuration?: number;
+  cycleCount?: number;
+  onComplete?: () => void;
+  selectedTaskId?: string;
 }
 
 const Timer: React.FC<TimerProps> = ({
@@ -18,7 +20,8 @@ const Timer: React.FC<TimerProps> = ({
   shortBreakDuration = 5,
   longBreakDuration = 15,
   cycleCount = 4,
-  onComplete
+  onComplete,
+  selectedTaskId
 }) => {
   // 确保时长不少于5秒
   const minDuration = 5 / 60; // 5秒转换为分钟
@@ -30,12 +33,19 @@ const Timer: React.FC<TimerProps> = ({
   const [isRunning, setIsRunning] = useState(false);
   const [currentPhase, setCurrentPhase] = useState<'work' | 'shortBreak' | 'longBreak'>('work');
   const [completedPomodoros, setCompletedPomodoros] = useState(0);
-
+  const timerRef = useRef<number | undefined>(undefined);
+  const [tasks, setTasks] = useState<Task[]>(() => {
+    const saved = localStorage.getItem('tasks');
+    return saved ? JSON.parse(saved) : [];
+  });
+  // 删除以下行
+// const [selectedTaskId, setSelectedTaskId] = useState<string>();
+  const saveTasks = (updatedTasks: Task[]) => {
+    localStorage.setItem('tasks', JSON.stringify(updatedTasks));
+  };
   useEffect(() => {
-    let timer: number | undefined;
-
     if (isRunning && timeLeft > 0) {
-      timer = window.setInterval(() => {
+      timerRef.current = window.setInterval(() => {
         setTimeLeft((prevTime) => prevTime - 1);
       }, 1000);
     } else if (timeLeft === 0) {
@@ -43,7 +53,7 @@ const Timer: React.FC<TimerProps> = ({
     }
 
     return () => {
-      if (timer) clearInterval(timer);
+      if (timerRef.current) clearInterval(timerRef.current);
     };
   }, [isRunning, timeLeft]);
 
@@ -55,6 +65,16 @@ const Timer: React.FC<TimerProps> = ({
     audio.play().catch(error => {
       console.error('播放提示音失败:', error);
     });
+
+    if (currentPhase === 'work' && selectedTaskId) {
+      const updatedTasks = tasks.map(task => 
+        task.id === selectedTaskId
+          ? { ...task, totalDuration: (task.totalDuration || 0) + validWorkDuration }
+          : task
+      );
+      setTasks(updatedTasks);
+      saveTasks(updatedTasks);
+    }
 
     if (currentPhase === 'work') {
       const newCompletedCount = completedPomodoros + 1;
@@ -89,6 +109,8 @@ const Timer: React.FC<TimerProps> = ({
     setTimeLeft(validWorkDuration * 60);
     setCurrentPhase('work');
     setCompletedPomodoros(0);
+    // 删除此行
+    // setSelectedTaskId(undefined);
   };
 
   const formatTime = (seconds: number): string => {

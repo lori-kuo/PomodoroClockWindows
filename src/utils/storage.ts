@@ -10,6 +10,7 @@ export interface Task {
   content: string;
   timestamp: number;
   completed: boolean;
+  duration?: number;
 }
 
 // 计时器设置接口

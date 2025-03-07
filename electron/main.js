@@ -27,6 +27,12 @@ function createWindow() {
     }
   });
 
+  // 设置窗口最大化
+  mainWindow.maximize();
+
+  // 自动打开开发者工具
+  mainWindow.webContents.openDevTools();
+
   // 监听窗口关闭事件，清除窗口引用
   mainWindow.on('closed', () => {
     mainWindow = null;
@@ -48,13 +54,6 @@ function createWindow() {
       console.error('Failed to load app:', err);
     });
   }
-
-  // 禁用默认打开开发者工具的行为
-  mainWindow.webContents.on('before-input-event', (event, input) => {
-    if (input.control && input.key.toLowerCase() === 'i') {
-      event.preventDefault();
-    }
-  });
 }
 
 app.whenReady().then(() => {
